@@ -1,39 +1,52 @@
-from flask import Flask, request
-from models import db, Tournament
+from flask import Flask, request, url_for
+from sqlalchemy.orm.exc import NoResultFound
+import models
+from tools import jsonify, data
 
 app = Flask(__name__)
 
 
 @app.before_first_request
 def setup():
-    db.create_all()
+    models.db.create_all()
 
 
-@app.route('/')
+@app.route('/v1/')
 def hello_world():
     return 'Hello World!'
 
 
-@app.route('/tournaments/', methods=['GET', 'POST'])
+@app.route('/v1/tournaments/', methods=['GET', 'POST'])
 def tournaments():
     if request.method == 'POST':
-        t = Tournament()
-        db.session.add(t)
-        db.session.commit()
-        return str(t.id), 201
-    else:
-        return Tournament.query
+        return create_tournament()
+
+    if request.method == 'GET':
+        return get_tournaments()
 
 
-@app.route('/tournaments/<id>', methods=['GET', 'DELETE'])
-def tournament(id):
-    if request.method == 'DELETE':
-        t = Tournament()
-        db.session.add(t)
-        db.session.commit()
-        return str(t.id), 201
-    else:
-        return 'foo', 200
+@jsonify
+def get_tournaments():
+    return {'content': [url_for('tournament', tournament_id=t.id, _external=True) for t in models.Tournament.query]}
+
+
+def create_tournament():
+    t = models.Tournament()
+    models.db.session.add(t)
+    models.db.session.commit()
+    return url_for('tournament', tournament_id=t.id, _external=True), 201
+
+
+@app.route('/v1/tournaments/<int:tournament_id>', methods=['GET'])
+@jsonify
+def tournament(tournament_id):
+    try:
+        t = models.Tournament.query.filter(models.Tournament.id == tournament_id).one()
+    except NoResultFound:
+        return {'error': 'does not exist'}, 404
+
+    if request.method == 'GET':
+        return data(t)
 
 
 if __name__ == '__main__':
