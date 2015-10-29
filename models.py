@@ -1,3 +1,4 @@
+from flask import url_for
 from flask.ext.sqlalchemy import SQLAlchemy
 from tournament import app
 
@@ -8,7 +9,13 @@ db = SQLAlchemy(app)
 class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
+    players = db.relationship('Player', secondary='tournament_players', backref='tournaments')
+
     accessible_columns = {'id'}
+
+    @property
+    def href(self):
+        return url_for('tournament', tournament_id=self.id, _external=True)
 
 
 class Player(db.Model):
@@ -33,3 +40,7 @@ class Round(db.Model):
     round_number = db.Column(db.String(80), primary_key=True)
 
 
+tournament_players = db.Table('tournament_players', db.metadata,
+    db.Column('tournament_id', db.ForeignKey('tournament.id')),
+    db.Column('player_id', db.ForeignKey('player.id'))
+)
