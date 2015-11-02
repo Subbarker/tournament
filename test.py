@@ -23,7 +23,7 @@
 # print(requests.post('http://127.0.0.1:5000/v1/matches/').text)
 #
 # requests.put('http://127.0.0.1:5000/v1/matches/2', headers=headers, data=json.dumps({'player_1_id': 4}))
-
+import json
 
 import os
 from models import app
@@ -41,6 +41,17 @@ class TournamentTestCase(unittest.TestCase):
     def tearDown(self):
         os.close(self.db_fd)
         os.unlink(app.config['DATABASE'])
+
+    def test_directory(self):
+        rv = self.app.get('/v1/')
+        data = json.loads(rv.data.decode())
+        assert 'matches' in data
+        assert 'players' in data
+        assert 'tournaments' in data
+
+        assert self.app.get(data['matches']).default_status == 200
+        assert self.app.get(data['players']).default_status == 200
+        assert self.app.get(data['tournaments']).default_status == 200
 
 if __name__ == '__main__':
     unittest.main()
