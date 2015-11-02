@@ -26,9 +26,9 @@ def tournaments():
     return resource_list(models.Tournament)
 
 
-@app.route('/v1/tournaments/<int:tournament_id>')
-def tournament(tournament_id):
-    return data(models.Tournament.query.filter(models.Tournament.id == tournament_id).one())
+@app.route('/v1/tournaments/<id>')
+def tournament(id):
+    return data(models.Tournament.query.filter(models.Tournament.id == id).one())
 
 
 @app.route('/v1/matches/', methods=['GET', 'POST'])
@@ -36,9 +36,9 @@ def matches():
     return resource_list(models.Match)
 
 
-@app.route('/v1/matches/<int:match_id>', methods=['GET', 'PUT'])
-def match(match_id):
-    m = models.Match.query.filter(models.Match.id == match_id).one()
+@app.route('/v1/matches/<id>', methods=['GET', 'PUT'])
+def match(id):
+    m = models.Match.query.filter(models.Match.id == id).one()
     if request.method == 'GET':
         return data(m)
     if request.method == 'PUT':
@@ -50,9 +50,9 @@ def players():
     return resource_list(models.Player)
 
 
-@app.route('/v1/players/<int:player_id>')
-def player(player_id):
-    return data(models.Player.query.filter(models.Player.id == player_id).one())
+@app.route('/v1/players/<id>')
+def player(id):
+    return data(models.Player.query.filter(models.Player.id == id).one())
 
 
 if __name__ == '__main__':
