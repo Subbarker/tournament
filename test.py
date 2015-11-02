@@ -45,6 +45,7 @@ class TournamentTestCase(unittest.TestCase):
     def test_directory(self):
         rv = self.app.get('/v1/')
         data = json.loads(rv.data.decode())
+
         assert 'matches' in data
         assert 'players' in data
         assert 'tournaments' in data
@@ -52,6 +53,17 @@ class TournamentTestCase(unittest.TestCase):
         assert self.app.get(data['matches']).default_status == 200
         assert self.app.get(data['players']).default_status == 200
         assert self.app.get(data['tournaments']).default_status == 200
+
+    # def test_players(self):
+    #     rv = self.app.post('/v1/players/', )
+    #     data = json.loads(rv.data.decode())
+    #     assert 'matches' in data
+    #     assert 'players' in data
+    #     assert 'tournaments' in data
+    #
+    #     assert self.app.get(data['matches']).default_status == 200
+    #     assert self.app.get(data['players']).default_status == 200
+    #     assert self.app.get(data['tournaments']).default_status == 200
 
 if __name__ == '__main__':
     unittest.main()
