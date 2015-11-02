@@ -1,5 +1,8 @@
 from functools import wraps
 import flask
+from flask import request
+from sqlalchemy.exc import InvalidRequestError
+import models
 
 
 def jsonify(func):
@@ -26,3 +29,21 @@ def simple_filter(model, q):
     for k, v in flask.request.args.items():
         q = q.filter(getattr(model, k) == v)
     return q
+
+
+def resource_list(model):
+    if request.method == 'GET':
+        return list_view(simple_filter(model, model.query))
+    if request.method == 'POST':
+        return create_resource(model)
+
+
+def create_resource(model):
+    m = model(**(request.json or {}))
+    models.db.session.add(m)
+    try:
+        models.db.session.commit()
+    except InvalidRequestError:
+        models.db.session.rollback()
+        return {'error': 'conflict'}, 409
+    return m.href, 201
