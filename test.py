@@ -54,16 +54,20 @@ class TournamentTestCase(unittest.TestCase):
         assert self.app.get(data['players']).default_status == 200
         assert self.app.get(data['tournaments']).default_status == 200
 
-    # def test_players(self):
-    #     rv = self.app.post('/v1/players/', )
-    #     data = json.loads(rv.data.decode())
-    #     assert 'matches' in data
-    #     assert 'players' in data
-    #     assert 'tournaments' in data
-    #
-    #     assert self.app.get(data['matches']).default_status == 200
-    #     assert self.app.get(data['players']).default_status == 200
-    #     assert self.app.get(data['tournaments']).default_status == 200
+    def create_player(self, name):
+        return self.app.post('/v1/players/', data={'name': name})
+
+    def test_players(self):
+        jeff = self.create_player('jeff')
+
+        assert jeff.default_status == 201
+        assert self.app.get(jeff.text).default_status == 200
+
+    def test_tournament(self):
+        tournament = self.app.post('/v1/tournaments/')
+
+        assert tournament.default_status == 201
+        assert self.app.get(tournament.text).default_status == 200
 
 if __name__ == '__main__':
     unittest.main()
