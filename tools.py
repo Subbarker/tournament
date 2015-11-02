@@ -1,6 +1,5 @@
 from functools import wraps
 import flask
-from sqlalchemy.orm.state import InstanceState
 
 
 def jsonify(func):
@@ -21,3 +20,9 @@ def data(sqla_obj):
 @jsonify
 def list_view(q):
     return {'content': [o.href for o in q]}
+
+
+def simple_filter(model, q):
+    for k, v in flask.request.args.items():
+        q = q.filter(getattr(model, k) == v)
+    return q

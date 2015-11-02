@@ -2,7 +2,7 @@ from flask import Flask, request, url_for
 from sqlalchemy.exc import InvalidRequestError
 
 import models
-from tools import jsonify, data, list_view
+from tools import jsonify, data, list_view, simple_filter
 
 app = Flask(__name__)
 
@@ -25,7 +25,7 @@ def root():
 @app.route('/v1/tournaments/', methods=['GET', 'POST'])
 def tournaments():
     if request.method == 'GET':
-        return list_view(models.Tournament.query)
+        return list_view(simple_filter(models.Tournament, models.Tournament.query))
     if request.method == 'POST':
         return create_tournament()
 
@@ -46,12 +46,12 @@ def tournament(tournament_id):
 @app.route('/v1/matches/', methods=['GET', 'POST'])
 def matches():
     if request.method == 'GET':
-        return list_view(models.Match.query)
+        return list_view(simple_filter(models.Match, models.Match.query))
     if request.method == 'POST':
         return create_match()
 
 
-@app.route('/v1/matches/<int:match_id>', methods=['GET'])  #todo add PUT
+@app.route('/v1/matches/<int:match_id>', methods=['GET'])
 @jsonify
 def match(match_id):
     m = models.Match.query.filter(models.Match.id == match_id).one()
@@ -62,7 +62,7 @@ def match(match_id):
 @app.route('/v1/players/', methods=['GET', 'POST'])
 def players():
     if request.method == 'GET':
-        return list_view(models.Player.query)
+        return list_view(simple_filter(models.Player, models.Player.query))
     if request.method == 'POST':
         return create_player()
 
