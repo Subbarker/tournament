@@ -1,5 +1,6 @@
 from functools import wraps
 import flask
+from sqlalchemy.orm.state import InstanceState
 
 
 def jsonify(func):
@@ -14,4 +15,9 @@ def jsonify(func):
 
 
 def data(sqla_obj):
-    return {col: getattr(sqla_obj, col) for col in type(sqla_obj).accessible_columns}
+    return {k: getattr(sqla_obj, k) for k in vars(type(sqla_obj)) if not k.startswith('_')}
+
+
+@jsonify
+def list_view(q):
+    return {'content': [o.href for o in q]}

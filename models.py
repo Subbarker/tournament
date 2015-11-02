@@ -8,13 +8,8 @@ db = SQLAlchemy(app)
 
 class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    players = db.relationship('Player', secondary='tournament_players', backref='tournaments')
-
-    accessible_columns = {'id', 'href', 'players_url'}
-
-    @property
-    def players_url(self):
-        return self.href + '/players/'
+    _players = db.relationship('Player', secondary='tournament_players', backref='_tournaments')
+    _matches = db.relationship('Match', backref='_tournament')
 
     @property
     def href(self):
@@ -23,9 +18,7 @@ class Tournament(db.Model):
 
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True)
-
-    accessible_columns = {'id', 'href', 'name'}
+    name = db.Column(db.String(50), unique=True)
 
     @property
     def href(self):
@@ -33,20 +26,21 @@ class Player(db.Model):
 
 
 class Match(db.Model):
-    round_id = db.Column(db.Integer, primary_key=True)
-    _player_1_id = db.Column(db.ForeignKey(Player.id), primary_key=True)
-    _player_2_id = db.Column(db.ForeignKey(Player.id), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    tournament_id = db.Column(db.ForeignKey(Tournament.id))
+    round_number = db.Column(db.Integer)
+    player_1_id = db.Column(db.ForeignKey(Player.id))
+    player_2_id = db.Column(db.ForeignKey(Player.id))
     player_1_wins = db.Column(db.Integer)
     player_2_wins = db.Column(db.Integer)
     ties = db.Column(db.Integer)
 
-    player_1 = db.relationship(Player, primaryjoin=_player_1_id == Player.id, backref='matches')
-    player_2 = db.relationship(Player, primaryjoin=_player_2_id == Player.id)
+    _player_1 = db.relationship(Player, primaryjoin=player_1_id == Player.id, backref='matches')
+    _player_2 = db.relationship(Player, primaryjoin=player_2_id == Player.id)
 
-
-class Round(db.Model):
-    tournament_id = db.Column(db.Integer, primary_key=True)
-    round_number = db.Column(db.String(80), primary_key=True)
+    @property
+    def href(self):
+        return url_for('match', match_id=self.id, _external=True)
 
 
 tournament_players = db.Table('tournament_players', db.metadata,

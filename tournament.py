@@ -1,7 +1,8 @@
 from flask import Flask, request, url_for
 from sqlalchemy.exc import InvalidRequestError
+
 import models
-from tools import jsonify, data
+from tools import jsonify, data, list_view
 
 app = Flask(__name__)
 
@@ -15,7 +16,9 @@ def setup():
 @jsonify
 def root():
     return {
-        'tournaments': url_for('tournaments', _external=True)
+        'tournaments': url_for('tournaments', _external=True),
+        'players': url_for('players', _external=True),
+        'matches': url_for('matches', _external=True),
     }
 
 
@@ -25,11 +28,6 @@ def tournaments():
         return list_view(models.Tournament.query)
     if request.method == 'POST':
         return create_tournament()
-
-
-@jsonify
-def list_view(q):
-    return {'content': [o.href for o in q]}
 
 
 def create_tournament():
@@ -42,23 +40,23 @@ def create_tournament():
 @app.route('/v1/tournaments/<int:tournament_id>')
 @jsonify
 def tournament(tournament_id):
-    return data(get_tournament(tournament_id))
+    return data(models.Tournament.query.filter(models.Tournament.id == tournament_id).one())
 
 
-def get_tournament(id):
-    return models.Tournament.query.filter(models.Tournament.id == id).one()
-
-
-@app.route('/v1/tournaments/<int:tournament_id>/players/', methods=['GET', 'POST'])
-def tournament_players(tournament_id):
+@app.route('/v1/matches/', methods=['GET', 'POST'])
+def matches():
     if request.method == 'GET':
-        return list_view(models.Player.query.join(models.Tournament.players).filter(models.Tournament.id == tournament_id))
+        return list_view(models.Match.query)
     if request.method == 'POST':
-        t = get_tournament(tournament_id)
-        p = models.Player(id=int(request.json['id']))
-        t.players.append(p)
-        models.db.session.commit()
-        return p.href
+        return create_match()
+
+
+@app.route('/v1/matches/<int:match_id>', methods=['GET'])  #todo add PUT
+@jsonify
+def match(match_id):
+    m = models.Match.query.filter(models.Match.id == match_id).one()
+    if request.method == 'GET':
+        return data(m)
 
 
 @app.route('/v1/players/', methods=['GET', 'POST'])
@@ -80,6 +78,13 @@ def create_player():
     return p.href, 201
 
 
+def create_match():
+    m = models.Match()
+    models.db.session.add(m)
+    models.db.session.commit()
+    return m.href, 201
+
+
 @app.route('/v1/players/<int:player_id>')
 @jsonify
 def player(player_id):
@@ -92,4 +97,3 @@ def get_player(id):
 
 if __name__ == '__main__':
     app.run(debug=True)
-
