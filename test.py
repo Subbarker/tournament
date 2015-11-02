@@ -24,11 +24,10 @@
 #
 # requests.put('http://127.0.0.1:5000/v1/matches/2', headers=headers, data=json.dumps({'player_1_id': 4}))
 import json
-
-import os
 from models import app
-import unittest
+import os
 import tempfile
+import unittest
 
 
 class TournamentTestCase(unittest.TestCase):
@@ -59,6 +58,7 @@ class TournamentTestCase(unittest.TestCase):
 
     def test_players(self):
         jeff = self.create_player('jeff')
+        print(4)
 
         assert jeff.default_status == 201
         assert self.app.get(jeff.text).default_status == 200
