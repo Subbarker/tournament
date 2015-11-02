@@ -8,10 +8,13 @@ db = SQLAlchemy(app)
 
 class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-
     players = db.relationship('Player', secondary='tournament_players', backref='tournaments')
 
-    accessible_columns = {'id'}
+    accessible_columns = {'id', 'href', 'players_url'}
+
+    @property
+    def players_url(self):
+        return self.href + '/players/'
 
     @property
     def href(self):
@@ -21,6 +24,12 @@ class Tournament(db.Model):
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True)
+
+    accessible_columns = {'id', 'href', 'name'}
+
+    @property
+    def href(self):
+        return url_for('player', player_id=self.id, _external=True)
 
 
 class Match(db.Model):

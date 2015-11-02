@@ -1,4 +1,5 @@
 from flask import Flask, request, url_for
+from sqlalchemy.exc import InvalidRequestError
 import models
 from tools import jsonify, data
 
@@ -38,11 +39,10 @@ def create_tournament():
     return t.href, 201
 
 
-@app.route('/v1/tournaments/<int:tournament_id>', methods=['GET'])
+@app.route('/v1/tournaments/<int:tournament_id>')
 @jsonify
 def tournament(tournament_id):
-    if request.method == 'GET':
-        return data(get_tournament(tournament_id))
+    return data(get_tournament(tournament_id))
 
 
 def get_tournament(id):
@@ -55,8 +55,39 @@ def tournament_players(tournament_id):
         return list_view(models.Player.query.join(models.Tournament.players).filter(models.Tournament.id == tournament_id))
     if request.method == 'POST':
         t = get_tournament(tournament_id)
-        p = models.Player(id=int(request.json()['id']))
-        t.players.append(models.db.session.merge(p))
+        p = models.Player(id=int(request.json['id']))
+        t.players.append(p)
+        models.db.session.commit()
+        return p.href
+
+
+@app.route('/v1/players/', methods=['GET', 'POST'])
+def players():
+    if request.method == 'GET':
+        return list_view(models.Player.query)
+    if request.method == 'POST':
+        return create_player()
+
+
+def create_player():
+    p = models.Player(name=request.json['name'])
+    models.db.session.add(p)
+    try:
+        models.db.session.commit()
+    except InvalidRequestError:
+        models.db.session.rollback()
+        return {'error': '{} already exists'.format(p.name)}, 409
+    return p.href, 201
+
+
+@app.route('/v1/players/<int:player_id>')
+@jsonify
+def player(player_id):
+    return data(get_player(player_id))
+
+
+def get_player(id):
+    return models.Player.query.filter(models.Player.id == id).one()
 
 
 if __name__ == '__main__':
