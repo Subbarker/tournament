@@ -26,7 +26,7 @@
 
 
 import os
-import tournament
+from models import app
 import unittest
 import tempfile
 
@@ -34,13 +34,13 @@ import tempfile
 class TournamentTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.db_fd, tournament.app.config['DATABASE'] = tempfile.mkstemp()
-        tournament.app.config['TESTING'] = True
-        self.app = tournament.app.test_client()
+        self.db_fd, app.config['DATABASE'] = tempfile.mkstemp()
+        app.config['TESTING'] = True
+        self.app = app.test_client()
 
     def tearDown(self):
         os.close(self.db_fd)
-        os.unlink(tournament.app.config['DATABASE'])
+        os.unlink(app.config['DATABASE'])
 
 if __name__ == '__main__':
     unittest.main()
