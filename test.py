@@ -19,4 +19,7 @@ requests.post(t1 + '/players/', headers=headers, data=json.dumps({'id': 4}))
 requests.post(t1 + '/players/', headers=headers, data=json.dumps({'id': 5}))
 
 
+print(requests.post('http://127.0.0.1:5000/v1/matches/', headers=headers, data=json.dumps({'player_1_id': 2, 'player_2_id': 3})).text)
 print(requests.post('http://127.0.0.1:5000/v1/matches/').text)
+
+requests.put('http://127.0.0.1:5000/v1/matches/2', headers=headers, data=json.dumps({'player_1_id': 4}))

@@ -16,6 +16,7 @@ def jsonify(func):
     return jsonified
 
 
+@jsonify
 def data(sqla_obj):
     return {k: getattr(sqla_obj, k) for k in vars(type(sqla_obj)) if not k.startswith('_')}
 
@@ -39,11 +40,28 @@ def resource_list(model):
 
 
 def create_resource(model):
-    m = model(**(request.json or {}))
-    models.db.session.add(m)
+    resource = model(**(request.json or {}))
+    models.db.session.add(resource)
+
     try:
         models.db.session.commit()
     except InvalidRequestError:
         models.db.session.rollback()
         return {'error': 'conflict'}, 409
-    return m.href, 201
+
+    return resource.href, 201
+
+
+def modify_resource(resource):
+    if not request.json:
+        return ''
+    for k, v in request.json.items():
+        setattr(resource, k, v)
+
+    try:
+        models.db.session.commit()
+    except InvalidRequestError:
+        models.db.session.rollback()
+        return flask.jsonify({'error': 'conflict'}), 409
+
+    return resource.href, 200

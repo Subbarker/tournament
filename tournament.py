@@ -1,7 +1,7 @@
 from flask import Flask, request, url_for
 
 import models
-from tools import jsonify, data, resource_list
+from tools import jsonify, data, resource_list, modify_resource
 
 app = Flask(__name__)
 
@@ -27,7 +27,6 @@ def tournaments():
 
 
 @app.route('/v1/tournaments/<int:tournament_id>')
-@jsonify
 def tournament(tournament_id):
     return data(models.Tournament.query.filter(models.Tournament.id == tournament_id).one())
 
@@ -37,12 +36,13 @@ def matches():
     return resource_list(models.Match)
 
 
-@app.route('/v1/matches/<int:match_id>', methods=['GET'])
-@jsonify
+@app.route('/v1/matches/<int:match_id>', methods=['GET', 'PUT'])
 def match(match_id):
     m = models.Match.query.filter(models.Match.id == match_id).one()
     if request.method == 'GET':
         return data(m)
+    if request.method == 'PUT':
+        return modify_resource(m)
 
 
 @app.route('/v1/players/', methods=['GET', 'POST'])
@@ -51,7 +51,6 @@ def players():
 
 
 @app.route('/v1/players/<int:player_id>')
-@jsonify
 def player(player_id):
     return data(models.Player.query.filter(models.Player.id == player_id).one())
 
